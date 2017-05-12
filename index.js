@@ -24,8 +24,20 @@ function hash(filepath, bits, format) {
       resolve(content);
     });
   })
-  .then((fdata) => {
-    const ftype = imageType(fdata);
+  .then((fdata) => decodeData(fdata))
+  .then((data) => hashRaw(data, bits))
+  .then((hexHash) => {
+    if (format === 'hex') return hexHash;
+    if (format === 'binary') return hexToBinary(hexHash);
+  });
+}
+
+function hashRaw(data, bits) {
+  return blockhash.blockhashData(data, bits, 2);
+}
+
+function decodeData(fdata) {
+  const ftype = imageType(fdata);
 
     if (ftype.mime === 'image/bmp') {
       return bmp.decode(fdata);
@@ -49,16 +61,6 @@ function hash(filepath, bits, format) {
     }
 
     throw new Error('Unsupported image type');
-  })
-  .then((data) => hashRaw(data, bits))
-  .then((hexHash) => {
-    if (format === 'hex') return hexHash;
-    if (format === 'binary') return hexToBinary(hexHash);
-  });
-}
-
-function hashRaw(data, bits) {
-  return blockhash.blockhashData(data, bits, 2);
 }
 
 function hexToBinary(s) {
@@ -124,5 +126,6 @@ module.exports = {
   hash,
   hashRaw,
   hexToBinary,
-  binaryToHex
+  binaryToHex,
+  decodeData
 };
